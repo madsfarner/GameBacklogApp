@@ -1,7 +1,6 @@
 package com.example.gamebacklog.ui;
 
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
     private GestureDetector mGestureDetector;
     private GameRoomDatabase db;
     private Executor executor = Executors.newSingleThreadExecutor();
-    private int mModifyPosition;
 
     public static final int REQUESTCODEADD = 1234;
     public static final int REQUESTCODEEDIT = 4321;
@@ -66,6 +63,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
         initFloatingButton();
         initRecyclerView();
 
+        if(mGames.size() == 0) {
+            mainViewModel.insert(new Game("GTA", "PS4", "Stalled", "14-03-2019"));
+            mainViewModel.insert(new Game("CoD", "PC", "Dropped", "01-02-2019"));
+            mainViewModel.insert(new Game("Rocket League", "Xbox", "Playing", "05-12-2018"));
+        }
         updateUI();
 
     }
@@ -102,15 +104,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                /*Snackbar.make(findViewById(R.id.parent), "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
+                int position = (viewHolder.getAdapterPosition());
+                final Game game = mGames.get(position);
+                mainViewModel.delete(game);
+                Snackbar snackbar = Snackbar.make(findViewById(R.id.mainContent), "Deleted from list", Snackbar.LENGTH_LONG);
+
+                snackbar.setAction("Undo",new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mainViewModel.insert(game);
+                    }
+                }).show();
             }
         };
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
         mRecyclerView.addOnItemTouchListener(this);
-
     }
 
     public void updateUI() {
@@ -156,13 +166,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerView.OnIt
             if(mGestureDetector.onTouchEvent(motionEvent)){
                 Intent intent = new Intent(MainActivity.this, editGameActivity.class);
                 intent.putExtra(EDIT, true);
-                mModifyPosition = mAdapterPosition;
                 intent.putExtra(EXTRA_GAME, mGames.get(mAdapterPosition));
-                Log.d("activityStart", mGames.get(mAdapterPosition).getGameName());
                 startActivityForResult(intent, REQUESTCODEEDIT);
             }
         }
         return false;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == RESULT_OK) {
+            Game game = data.getParcelableExtra(EXTRA_GAME);
+            if (requestCode == REQUESTCODEADD) {
+                mainViewModel.insert(game);
+            } else if (requestCode == REQUESTCODEEDIT) {
+                mainViewModel.update(game);
+            }
+        }
     }
 
     @Override

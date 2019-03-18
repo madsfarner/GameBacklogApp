@@ -35,7 +35,7 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.ViewHolder> {
         Game game = mGames.get(i);
         viewHolder.titleView.setText(game.getGameName());
         viewHolder.platformView.setText(game.getGamePlatform());
-        viewHolder.statusView.setText("Wanting to play"); //game.getGameStatus().toString()
+        viewHolder.statusView.setText(game.getGameStatus());
         viewHolder.dateView.setText(game.getGameEdited());
     }
 

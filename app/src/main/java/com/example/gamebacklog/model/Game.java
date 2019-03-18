@@ -14,10 +14,10 @@ import java.util.Date;
 public class Game implements Parcelable {
 
     public enum STATUS {
-        WANT("Want to play"),
-        PLAYING("Playing"),
-        STALLED("Stalled"),
-        DROPPED("Dropped");
+        W("Want to play"),
+        P("Playing"),
+        S("Stalled"),
+        D("Dropped");
 
         private final String status;
 
@@ -31,28 +31,12 @@ public class Game implements Parcelable {
         }
     }
 
-    public Game (String gameName, String gamePlatform, String gameStatus, String gameEdited){
+    public Game(String gameName, String gamePlatform, String gameStatus, String gameEdited) {
         this.gameName = gameName;
         this.gamePlatform = gamePlatform;
         this.gameStatus = gameStatus;
         this.gameEdited = gameEdited;
-
     }
-
-    @PrimaryKey(autoGenerate = true)
-    private Long id;
-
-    @ColumnInfo(name = "gameName")
-    private String gameName;
-
-    @ColumnInfo(name = "gamePlatform")
-    private String gamePlatform;
-
-    @ColumnInfo(name = "gameStatus")
-    private String gameStatus;
-
-    @ColumnInfo(name = "date")
-    private String gameEdited;
 
     protected Game(Parcel in) {
         if (in.readByte() == 0) {
@@ -60,16 +44,10 @@ public class Game implements Parcelable {
         } else {
             id = in.readLong();
         }
-        this.gameName = in.readString();
-        this.gamePlatform = in.readString();
-        //this.gameStatus = STATUS.values()[in.readInt()];
-        this.gameStatus = in.readString();
-        this.gameEdited = in.readString();
-    }
-
-    @Override
-    public String toString() {
-        return "Game: " + this.getGameName();
+        gameName = in.readString();
+        gamePlatform = in.readString();
+        gameStatus = in.readString();
+        gameEdited = in.readString();
     }
 
     public static final Creator<Game> CREATOR = new Creator<Game>() {
@@ -91,12 +69,44 @@ public class Game implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(this.gameName);
-        dest.writeString(this.gamePlatform);
-        dest.writeString(this.gameStatus);
-        dest.writeString(this.gameEdited);
+
+        if (id == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(id);
+        }
+        dest.writeString(gameName);
+        dest.writeString(gamePlatform);
+        dest.writeString(gameStatus);
+        dest.writeString(gameEdited);
     }
+
+
+
+
+    @PrimaryKey(autoGenerate = true)
+    private Long id;
+
+    @ColumnInfo(name = "gameName")
+    private String gameName;
+
+    @ColumnInfo(name = "gamePlatform")
+    private String gamePlatform;
+
+    @ColumnInfo(name = "gameStatus")
+    private String gameStatus;
+
+    @ColumnInfo(name = "date")
+    private String gameEdited;
+
+
+    @Override
+    public String toString() {
+        return "Game: " + this.getGameName();
+    }
+
+
 
     public Long getId() {
         return id;
@@ -136,5 +146,12 @@ public class Game implements Parcelable {
 
     public void setGameEdited(String gameEdited) {
         this.gameEdited = gameEdited;
+    }
+
+    public void setAll(String name, String platform, String status, String editDate){
+        this.gameName = name;
+        this.gamePlatform = platform;
+        this.gameStatus = status;
+        this.gameEdited = editDate;
     }
 }
